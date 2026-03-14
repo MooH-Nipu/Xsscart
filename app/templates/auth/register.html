@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XssCart — Register</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pixel.css') }}">
+</head>
+<body>
+<div class="auth-wrapper">
+
+  <div class="auth-logo">
+    <div class="auth-logo__title">XssCart.exe</div>
+    <div class="auth-logo__sub">NEW PLAYER REGISTRATION</div>
+  </div>
+
+  <div class="sprite-area">👾</div>
+
+  <div class="auth-card pixel-box pixel-box--yellow slide-in">
+    <div class="auth-card__title" style="color:var(--yellow);">[ CREATE ACCOUNT ]</div>
+
+    {% if error %}
+    <div class="alert alert--error" data-autohide>⛔ {{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert--success" data-autohide>✅ {{ success }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}" autocomplete="off">
+      <div class="field">
+        <label class="field__label">USERNAME</label>
+        <input
+          type="text"
+          name="username"
+          class="field__input"
+          placeholder="HackerName"
+          minlength="3"
+          maxlength="24"
+          required
+          autofocus
+        >
+      </div>
+
+      <div class="field">
+        <label class="field__label">EMAIL ADDRESS</label>
+        <input
+          type="email"
+          name="email"
+          class="field__input"
+          placeholder="player@mail.com"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label class="field__label">PASSWORD</label>
+        <input
+          type="password"
+          name="password"
+          class="field__input"
+          placeholder="min 6 chars"
+          minlength="6"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn--yellow mt-8">
+        ► CREATE CHARACTER
+      </button>
+    </form>
+
+    <div class="auth-link">
+      ALREADY REGISTERED?
+      <a href="{{ url_for('auth.login') }}">LOGIN HERE</a>
+    </div>
+  </div>
+
+  <div style="font-size:6px; color:var(--muted); letter-spacing:2px; text-align:center; line-height:2.5;">
+    ⚠ SERVER CAPACITY: 10 PLAYERS MAXIMUM<br>
+    REGISTRATION CLOSES WHEN FULL
+  </div>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

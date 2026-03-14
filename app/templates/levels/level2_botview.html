@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>XssCart Shop - Product Page</title>
+  <style>
+    /* Looks like a normal shopping page to the bot */
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 40px; color: #333; }
+    .product { background: white; padding: 30px; border-radius: 8px; max-width: 600px; margin: 0 auto; }
+    h1 { color: #222; }
+    .price { font-size: 24px; color: #e44; font-weight: bold; }
+    .btn { background: #e44; color: white; padding: 12px 24px; border: none;
+           border-radius: 4px; font-size: 16px; cursor: pointer; }
+    .review { border-top: 1px solid #eee; padding-top: 16px; margin-top: 20px; }
+    .review h3 { font-size: 14px; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="product">
+    <h1>XssCart Pro Subscription</h1>
+    <p>The ultimate hacking practice platform.</p>
+    <div class="price">$99.99</div>
+    <br>
+    <button class="btn">Add to Cart</button>
+
+    <!-- User review section - content rendered from DB (intentionally vulnerable) -->
+    <div class="review">
+      <h3>Customer Review</h3>
+      <!-- ⚠️ CTF VULN: raw_payload is rendered unescaped here -->
+      <div id="review-content">{{ raw_payload }}</div>
+    </div>
+  </div>
+</body>
+</html>

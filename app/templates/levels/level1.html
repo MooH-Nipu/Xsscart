@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}XssCart — Stage 01: Filter Bypass{% endblock %}
+
+{% block body %}
+<div class="page">
+
+  <!-- Back nav -->
+  <div class="level-header slide-in">
+    <a href="{{ url_for('home.dashboard', player_uuid=player_uuid) }}" class="level-header__back">
+      ◀ BACK TO MAP
+    </a>
+    <div class="level-header__title">STAGE 01 — FILTER BYPASS XSS</div>
+    <div class="level-header__sub">
+      DIFFICULTY: ▓▓▓░░ MEDIUM &nbsp;|&nbsp; TYPE: DOM XSS
+    </div>
+  </div>
+
+  <!-- Story terminal (fairy tale style description) -->
+  <div class="terminal">
+    <div class="terminal__body">
+      <div class="terminal__line">
+        <span class="terminal__prompt">ORACLE&gt;</span>
+        <span class="terminal__cmd">THE PRINCESS AND THE CURSED LINK</span>
+      </div>
+      <div class="terminal__out">
+        In a small kingdom of pixels, every traveler carries a secret name that only the castle remembers.
+      </div>
+      <div class="terminal__out">
+        A wandering princess discovers an old market stall that offers a single, strange link.
+      </div>
+      <div class="terminal__out">
+        The stall keeper agrees to reveal her true name <em>only if</em> she can whisper just the right magic words into that link.
+      </div>
+      <div class="terminal__out" style="margin-top:4px;">
+        But an ancient spell forbids certain runes from being spoken aloud.
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules -->
+  <div class="rule-box pixel-box pixel-box--red">
+    <div class="rule-box__title">⛔ CURSED RUNES</div>
+    <ul class="rule-list">
+      <li>Angle brackets <span class="text-red">&lt; &gt;</span> — FORBIDDEN</li>
+      <li>Any spell containing <code>script</code> — FORBIDDEN</li>
+      <li>Any spell containing <code>img</code> — FORBIDDEN</li>
+      <li>You may not summon your own HTML tags.</li>
+    </ul>
+  </div>
+
+  <!-- Generic output panel players can target with XSS -->
+  <div class="pixel-box" style="margin-top:16px; padding:12px;">
+    <div style="font-size:8px; color:var(--muted); margin-bottom:6px; letter-spacing:1px;">
+      ORACLE MIRROR
+    </div>
+    <div id="lvl1-output" style="font-size:9px; color:var(--yellow); word-break:break-all;">
+      <!-- When the spell is correct, the mirror will softly whisper who the princess really is. -->
+    </div>
+  </div>
+
+  <!-- Already solved -->
+  {% if already_solved and not success %}
+  <div class="alert alert--success">✅ STAGE ALREADY CLEARED. HERE IS YOUR REWARD:</div>
+  {% endif %}
+
+  <!-- Flag display -->
+  {% if flag %}
+  <div class="flag-box pixel-box pixel-box--green mt-16 mb-24">
+    <div class="flag-box__label">🚩 CAPTURED FLAG</div>
+    <div class="flag-box__value">{{ flag }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Messages -->
+  {% if error %}
+  <div class="alert alert--error slide-in">{{ error }}</div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert--success slide-in">{{ success }}</div>
+  {% endif %}
+
+  <!-- Payload form -->
+  <form method="POST" action="{{ url_for('levels.level1', player_uuid=player_uuid) }}">
+    <div class="payload-wrap">
+      <label class="field__label">
+        ► ENTER PAYLOAD
+        <span id="payload-counter" style="float:right; color:var(--muted); font-size:6px;">0 chars</span>
+      </label>
+      <input
+        type="text"
+        name="payload"
+        class="payload-input"
+        placeholder="javascript:..."
+        value="{{ payload }}"
+        autocomplete="off"
+        autofocus
+      >
+    </div>
+
+    <!-- Live preview -->
+    {% if payload %}
+    <div class="pixel-box" style="padding:16px; margin-bottom:20px;">
+      <div style="font-size:7px; color:var(--muted); margin-bottom:10px; letter-spacing:1px;">PREVIEW — what the injected link looks like:</div>
+      <a href="{{ payload }}" style="font-size:8px; color:var(--blue); word-break:break-all;">
+        [LINK] Click to trigger XSS
+      </a>
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn--yellow">
+      ► SUBMIT PAYLOAD
+    </button>
+  </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>XssCart Admin — Review Moderation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+           background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+    /* Admin top bar */
+    .admin-bar {
+      background: #1a1a2e; color: #fff; padding: 12px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .admin-bar__logo { font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+    .admin-bar__logo span { color: #00ff87; }
+    .admin-bar__user { font-size: 12px; color: #aaa; display: flex; gap: 16px; align-items: center; }
+    .admin-bar__dot { width: 8px; height: 8px; background: #00ff87;
+                      border-radius: 50%; display: inline-block; }
+
+    /* Main layout */
+    .container { max-width: 900px; margin: 32px auto; padding: 0 24px; }
+    .page-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .page-sub   { font-size: 13px; color: #666; margin-bottom: 28px; }
+
+    /* Review card */
+    .review-card {
+      background: #fff; border-radius: 12px; padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px;
+    }
+    .review-card__header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #eee;
+    }
+    .reviewer-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .reviewer-info p  { font-size: 12px; color: #888; }
+    .stars { font-size: 18px; color: #f59e0b; letter-spacing: 2px; }
+    .badge {
+      font-size: 10px; padding: 3px 10px; border-radius: 20px;
+      background: #fef3c7; color: #92400e; font-weight: 600; text-transform: uppercase;
+    }
+
+    /* ── Review content — this is where the unsanitized payload goes ── */
+    .review-content {
+      font-size: 14px; line-height: 1.8; color: #333;
+      padding: 16px; background: #fafafa; border-radius: 8px;
+      border: 1px solid #eee; margin-bottom: 20px;
+      min-height: 60px;
+    }
+
+    /* Approve / reject buttons */
+    .action-row { display: flex; gap: 12px; }
+    .btn-approve {
+      background: #10b981; color: #fff; border: none; padding: 10px 20px;
+      border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;
+    }
+    .btn-reject {
+      background: #fff; color: #ef4444; border: 2px solid #ef4444;
+      padding: 10px 20px; border-radius: 6px; font-size: 13px;
+      cursor: pointer; font-weight: 600;
+    }
+    .btn-approve:hover { background: #059669; }
+    .btn-reject:hover  { background: #fef2f2; }
+
+    /* Product info sidebar */
+    .product-strip {
+      background: #fff; border-radius: 8px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+    .product-strip__img {
+      width: 56px; height: 56px; background: #e0e7ff; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .product-strip__name { font-size: 14px; font-weight: 600; }
+    .product-strip__sku  { font-size: 11px; color: #888; }
+    .product-strip__price { margin-left: auto; font-size: 18px; font-weight: 700; color: #10b981; }
+
+    /* Meta info */
+    .meta-row { font-size: 11px; color: #aaa; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- Admin navigation bar -->
+<div class="admin-bar">
+  <div class="admin-bar__logo">Xss<span>Cart</span> &nbsp;/&nbsp; Admin Panel</div>
+  <div class="admin-bar__user">
+    <span><span class="admin-bar__dot"></span> admin@xsscart.com</span>
+    <span>Review Moderation</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-title">Pending Reviews</div>
+  <div class="page-sub">1 review awaiting moderation</div>
+
+  <!-- Product being reviewed -->
+  <div class="product-strip">
+    <div class="product-strip__img">🛒</div>
+    <div>
+      <div class="product-strip__name">XssCart Pro Subscription — 12 months</div>
+      <div class="product-strip__sku">SKU: XSSC-PRO-12M &nbsp;|&nbsp; Category: Software</div>
+    </div>
+    <div class="product-strip__price">$99.99</div>
+  </div>
+
+  <!-- Review card with the unescaped payload -->
+  <div class="review-card">
+    <div class="review-card__header">
+      <div class="reviewer-info">
+        <h3>{{ reviewer_name }}</h3>
+        <p>Verified Purchase &nbsp;·&nbsp; {{ created_at }}</p>
+      </div>
+      <div style="text-align:right;">
+        <div class="stars">
+          {% for i in range(rating|int) %}★{% endfor %}{% for i in range(5 - rating|int) %}☆{% endfor %}
+        </div>
+        <div class="badge" style="margin-top:6px;">Pending</div>
+      </div>
+    </div>
+
+    <!-- ⚠️ CTF VULN: review_body rendered without escaping -->
+    <div class="review-content" id="review-body">
+      {{ review_body }}
+    </div>
+
+    <div class="action-row">
+      <button class="btn-approve" onclick="alert('Review approved!')">✓ Approve</button>
+      <button class="btn-reject"  onclick="alert('Review rejected.')">✗ Reject</button>
+    </div>
+
+    <div class="meta-row">
+      Review ID: #{{ player_uuid[:8] }} &nbsp;·&nbsp; Submitted from IP: 192.168.1.{{ range(10, 99)|random }}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

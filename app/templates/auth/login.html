@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XssCart — Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pixel.css') }}">
+</head>
+<body>
+<div class="auth-wrapper">
+
+  <!-- Logo -->
+  <div class="auth-logo">
+    <div class="auth-logo__title" data-typing="XssCart.exe">XssCart.exe</div>
+    <div class="auth-logo__sub">CTF CHALLENGE v1.0 // INSERT COIN</div>
+  </div>
+
+  <!-- Sprite -->
+  <div class="sprite-area">🕹️</div>
+
+  <!-- Card -->
+  <div class="auth-card pixel-box pixel-box--green slide-in">
+    <div class="auth-card__title">[ PLAYER LOGIN ]</div>
+
+    {% if error %}
+    <div class="alert alert--error" data-autohide>
+      ⛔ {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}" autocomplete="off">
+      <div class="field">
+        <label class="field__label">EMAIL ADDRESS</label>
+        <input
+          type="email"
+          name="email"
+          class="field__input"
+          placeholder="player@mail.com"
+          required
+          autofocus
+        >
+      </div>
+
+      <div class="field">
+        <label class="field__label">PASSWORD</label>
+        <input
+          type="password"
+          name="password"
+          class="field__input"
+          placeholder="••••••••"
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn--green mt-8">
+        ► START GAME
+      </button>
+    </form>
+
+    <div class="auth-link">
+      NEW PLAYER?
+      <a href="{{ url_for('auth.register') }}">REGISTER HERE</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="font-size:6px; color:var(--muted); letter-spacing:2px; text-align:center;">
+    MAX 10 PLAYERS // ALL SLOTS MAY BE TAKEN
+  </div>
+
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}XssCart — Bonus Stage{% endblock %}
+
+{% block extra_head %}
+{# Load the hidden JS file — players discover this in DevTools #}
+<script src="{{ url_for('static', filename='js/bonus_hidden.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="page">
+
+  <div class="level-header slide-in">
+    <a href="{{ url_for('home.dashboard', player_uuid=player_uuid) }}" class="level-header__back">
+      ◀ BACK TO MAP
+    </a>
+    <div class="level-header__title" style="color:var(--purple); text-shadow:0 0 12px rgba(162,155,254,0.5);">
+      BONUS STAGE — ???
+    </div>
+    <div class="level-header__sub">DIFFICULTY: ▓▓▓▓▓ EXPERT &nbsp;|&nbsp; TYPE: CODE RECON + XSS</div>
+  </div>
+
+  <!-- Challenge description (fill in your own lore/instructions) -->
+  <div class="terminal" style="border-color:var(--purple); box-shadow:0 0 12px rgba(162,155,254,0.3);">
+    <div class="terminal__body">
+      <div class="terminal__line">
+        <span class="terminal__prompt" style="color:var(--purple);">SYS&gt;</span>
+        <span class="terminal__cmd">BONUS STAGE OBJECTIVE</span>
+      </div>
+      <div class="terminal__out" style="color:var(--muted);">
+        <!-- TODO: Write your own bonus stage description here. -->
+      </div>
+    </div>
+  </div>
+
+  {% if error %}<div class="alert alert--error slide-in">{{ error }}</div>{% endif %}
+  {% if success %}<div class="alert alert--success slide-in">{{ success }}</div>{% endif %}
+
+  {% if already_solved %}
+  <div class="flag-box pixel-box" style="border-color:var(--purple);
+       animation: none; box-shadow:0 0 30px rgba(162,155,254,0.5);">
+    <div class="flag-box__label" style="color:var(--purple);">🏆 BONUS FLAG</div>
+    <div class="flag-box__value" style="color:var(--purple);">{{ flag }}</div>
+  </div>
+  <a href="{{ url_for('home.dashboard', player_uuid=player_uuid) }}" class="btn mt-24"
+     style="border-color:var(--purple); color:var(--purple); background:var(--panel);">
+    ◀ RETURN TO MAP
+  </a>
+
+  {% else %}
+
+  <!-- Live XSS playground -->
+  <div class="pixel-box" style="border-color:var(--purple); padding:24px; margin-bottom:24px;">
+    <div style="font-size:9px; color:var(--purple); margin-bottom:16px; letter-spacing:1px;">
+      XSS PLAYGROUND
+    </div>
+    <div style="font-size:7px; color:var(--muted); margin-bottom:16px; line-height:2.5;">
+      Payload executes live on this page.
+    </div>
+
+    <form method="POST" action="{{ url_for('levels.bonus', player_uuid=player_uuid) }}"
+          id="bonus-form">
+      <div class="payload-wrap">
+        <label class="field__label" style="color:var(--purple);">
+          ► XSS PAYLOAD
+          <span id="bonus-counter" style="float:right; color:var(--muted); font-size:6px;">0 chars</span>
+        </label>
+        <input
+          type="text"
+          name="payload"
+          id="bonus-payload"
+          class="payload-input"
+          style="border-color:var(--purple); color:var(--purple);
+                 box-shadow:0 0 12px rgba(162,155,254,0.3);"
+          placeholder="enter XSS payload here"
+          autocomplete="off"
+        >
+      </div>
+
+      <!-- Live preview: inject payload into this sandbox div -->
+      <div id="xss-sandbox" style="
+        background:var(--black); border:2px dashed var(--purple);
+        padding:16px; min-height:60px; margin-bottom:16px;
+        font-size:8px; color:var(--muted); letter-spacing:1px;
+        position:relative;">
+        <span id="sandbox-placeholder">[ PAYLOAD RENDERS HERE — LIVE ]</span>
+      </div>
+      <div style="font-size:6px; color:var(--muted); margin-bottom:16px; letter-spacing:1px;">
+        ⚡ LIVE — payload injects into the sandbox above as you type
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <button type="submit" class="btn"
+          style="border-color:var(--purple); color:var(--purple); background:var(--panel); flex:1;">
+          ► SUBMIT FOR VERIFICATION
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live XSS sandbox injection
+const input   = document.getElementById('bonus-payload');
+const sandbox = document.getElementById('xss-sandbox');
+const counter = document.getElementById('bonus-counter');
+const placeholder = document.getElementById('sandbox-placeholder');
+
+if (input && sandbox) {
+  input.addEventListener('input', () => {
+    const val = input.value;
+    if (counter) counter.textContent = val.length + ' chars';
+    if (val.trim()) {
+      if (placeholder) placeholder.style.display = 'none';
+      // Clear sandbox then inject
+      sandbox.innerHTML = '';
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = val;
+      sandbox.appendChild(wrapper);
+    } else {
+      sandbox.innerHTML = '';
+      if (placeholder) {
+        placeholder.style.display = '';
+        sandbox.appendChild(placeholder);
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

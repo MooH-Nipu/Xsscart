@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}XssCart CTF{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pixel.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% block navbar %}
+<nav class="navbar">
+  <a class="navbar__logo" href="{{ url_for('auth.login') }}">
+    Xss<span>Cart</span><span class="blink" style="color:var(--muted)">_</span>
+  </a>
+  {% if session.get('uuid') %}
+  <div class="navbar__user">
+    <span class="player-name">▶ {{ session.get('username') }}</span>
+    <a href="{{ url_for('auth.logout') }}" class="btn-logout">LOGOUT</a>
+  </div>
+  {% endif %}
+</nav>
+{% endblock %}
+
+{% block body %}{% endblock %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

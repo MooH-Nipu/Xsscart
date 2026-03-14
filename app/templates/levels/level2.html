@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}XssCart — Stage 02: Cookie Theft{% endblock %}
+
+{% block body %}
+<div class="page">
+
+  <div class="level-header slide-in">
+    <a href="{{ url_for('home.dashboard', player_uuid=player_uuid) }}" class="level-header__back">◀ BACK TO MAP</a>
+    <div class="level-header__title">STAGE 02 — COOKIE THEFT</div>
+    <div class="level-header__sub">DIFFICULTY: ▓▓▓▓░ HARD &nbsp;|&nbsp; TYPE: STORED XSS + EXFIL</div>
+  </div>
+
+  <!-- Lore terminal -->
+  <div class="terminal">
+    <div class="terminal__body">
+      <div class="terminal__line">
+        <span class="terminal__prompt">SYS&gt;</span>
+        <span class="terminal__cmd">INTEL REPORT: ADMIN MODERATES PRODUCT REVIEWS</span>
+      </div>
+      <div class="terminal__out">An admin bot reviews every submitted product review on the platform.</div>
+      <div class="terminal__out">The review page renders HTML without sanitisation.</div>
+      <div class="terminal__out">Admin cookie target: <span class="text-red">admin_session=???</span></div>
+      <div class="terminal__line" style="margin-top:8px;">
+        <span class="terminal__prompt">OBJ&gt;</span>
+        <span class="terminal__cmd text-yellow">inject XSS into a review → bot visits → steal cookie → submit proof</span>
+      </div>
+      {% if bot_dispatched %}
+      <div class="terminal__line" style="margin-top:4px;">
+        <span class="terminal__prompt">BOT&gt;</span>
+        <span class="terminal__cmd text-green blink">ADMIN DISPATCHED — reviewing your submission now...</span>
+      </div>
+      {% endif %}
+      <div class="terminal__line" style="margin-top:4px;">
+        <span class="terminal__prompt">BOT&gt;</span>
+        <span class="terminal__cmd" id="bot-status-text" style="color:var(--muted);">checking status...</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="bot-offline-warn" class="alert alert--error" style="display:none;">
+    ⚠️ BOT OFFLINE — install Playwright: <code style="font-family:var(--pixel);font-size:7px;">pip install playwright &amp;&amp; playwright install chromium</code>
+  </div>
+
+  {% if error %}<div class="alert alert--error slide-in">{{ error }}</div>{% endif %}
+  {% if success %}<div class="alert alert--success slide-in">{{ success }}</div>{% endif %}
+
+  {% if already_solved %}
+  <div class="flag-box pixel-box pixel-box--green">
+    <div class="flag-box__label">🚩 CAPTURED FLAG</div>
+    <div class="flag-box__value">{{ flag }}</div>
+  </div>
+  <a href="{{ url_for('home.dashboard', player_uuid=player_uuid) }}" class="btn btn--green mt-24">◀ RETURN TO MAP</a>
+
+  {% else %}
+
+  <!-- ══════════════════════════════════════════════
+       PHASE 1 — Post a malicious product review
+  ═══════════════════════════════════════════════════ -->
+  <div class="pixel-box pixel-box--yellow" style="padding:24px; margin-bottom:24px;">
+    <div style="font-size:9px; color:var(--yellow); margin-bottom:4px; letter-spacing:1px;">PHASE 1 — POST A REVIEW</div>
+    <div style="font-size:7px; color:var(--muted); margin-bottom:20px; letter-spacing:1px;">
+      Your review will be visible to the admin moderator bot. Inject XSS into the review body.
+    </div>
+
+    <form method="POST" action="{{ url_for('levels.level2', player_uuid=player_uuid) }}">
+      <input type="hidden" name="action" value="post_review">
+
+      <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:160px;">
+          <label class="field__label">REVIEWER NAME</label>
+          <input type="text" name="reviewer_name" class="field__input"
+            placeholder="HappyCustomer"
+            value="{{ stored_review[1] if stored_review else '' }}"
+            maxlength="32">
+        </div>
+        <div style="min-width:80px;">
+          <label class="field__label">RATING</label>
+          <select name="rating" class="field__input" style="cursor:pointer;">
+            {% for r in ['5','4','3','2','1'] %}
+            <option value="{{ r }}" {% if stored_review and stored_review[2] == r %}selected{% endif %}>
+              {{ '★' * r|int }}{{ '☆' * (5 - r|int) }} {{ r }}/5
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="payload-wrap">
+        <label class="field__label" style="color:var(--yellow);">
+          REVIEW BODY
+          <span style="float:right; color:var(--muted); font-size:6px;" id="review-counter">
+            {{ stored_review[0]|length if stored_review else 0 }} chars
+          </span>
+        </label>
+        <textarea name="review_body" class="payload-input" rows="4" id="review-body"
+          placeholder="write your review (and payload) here"
+          style="resize:vertical; line-height:1.8; color:var(--yellow);">{{ stored_review[0] if stored_review else '' }}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn--yellow">📝 POST REVIEW</button>
+    </form>
+
+    {% if stored_review %}
+    <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;
+                display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+
+      <form method="POST" action="{{ url_for('levels.level2', player_uuid=player_uuid) }}" style="flex:1; min-width:160px;">
+        <input type="hidden" name="action" value="dispatch">
+        <button type="submit" class="btn" style="border-color:var(--blue); color:var(--blue); background:var(--panel); width:100%;">
+          🤖 DISPATCH BOT AGAIN
+        </button>
+      </form>
+
+      <a href="{{ url_for('levels.level2_admin', player_uuid=player_uuid) }}" target="_blank"
+         class="btn btn--sm" style="border-color:var(--muted); color:var(--muted); background:var(--panel); white-space:nowrap;">
+        🔍 PREVIEW ADMIN PAGE
+      </a>
+    </div>
+    <div style="font-size:6px; color:var(--muted); margin-top:8px; letter-spacing:1px;">
+      ℹ Bot auto-dispatches when you open this page &nbsp;|&nbsp; PREVIEW shows exactly what the admin sees
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PHASE 2 — Submit stolen cookie
+  ═══════════════════════════════════════════════════ -->
+  <div class="pixel-box pixel-box--red" style="padding:24px; margin-bottom:24px;">
+    <div style="font-size:9px; color:var(--red); margin-bottom:16px; letter-spacing:1px;">PHASE 2 — SUBMIT PROOF</div>
+    <div style="font-size:7px; color:var(--muted); line-height:2.8; margin-bottom:16px;">
+      <!-- TODO: Add your own explanation of how players should submit their stolen cookie proof. -->
+    </div>
+
+    <form method="POST" action="{{ url_for('levels.level2', player_uuid=player_uuid) }}">
+      <input type="hidden" name="action" value="claim">
+      <div class="payload-wrap">
+        <label class="field__label" style="color:var(--red);">► PASTE STOLEN COOKIE VALUE</label>
+        <input type="text" name="stolen_cookie" class="payload-input"
+          style="border-color:var(--red); color:var(--red); box-shadow:0 0 12px rgba(255,71,87,0.4);"
+          placeholder="admin_session=..." autocomplete="off">
+      </div>
+      <button type="submit" class="btn" style="border-color:var(--red); color:var(--red); background:var(--panel);">
+        🚩 CLAIM FLAG
+      </button>
+    </form>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ta = document.getElementById('review-body');
+const counter = document.getElementById('review-counter');
+if (ta && counter) {
+  ta.addEventListener('input', () => { counter.textContent = ta.value.length + ' chars'; });
+}
+fetch('/webhook/bot-status')
+  .then(r => r.json())
+  .then(d => {
+    const el = document.getElementById('bot-status-text');
+    const warn = document.getElementById('bot-offline-warn');
+    if (d.online) {
+      el.textContent = 'ONLINE — ready'; el.style.color = 'var(--green)';
+    } else {
+      el.textContent = 'OFFLINE — bot not running!'; el.style.color = 'var(--red)';
+      if (warn) warn.style.display = 'block';
+    }
+  }).catch(() => {
+    const el = document.getElementById('bot-status-text');
+    if (el) { el.textContent = 'OFFLINE'; el.style.color = 'var(--red)'; }
+  });
+</script>
+{% endblock %}

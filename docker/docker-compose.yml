@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: xsscart
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=change-me-in-production
+      - DATABASE_PATH=/var/www/html/database.db
+      - FLAG_PART1=ITDIV{bina_nus
+      - FLAG_PART2=dont_try_to_guess_the_flag_dude_play_the_other_part}
+      - ADMIN_COOKIE=supersecretadmincookie_xsscart
+      - APP_BASE_URL=http://localhost:5000
+      - ADMIN_COOKIE_NAME=admin_session
+      - BOT_WAIT_MS=4000
+    volumes:
+      - db_data:/var/www/html
+    restart: unless-stopped
+
+volumes:
+  db_data:

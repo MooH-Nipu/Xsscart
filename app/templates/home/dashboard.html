@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}XssCart — Player Dashboard{% endblock %}
+
+{% block body %}
+<div class="page page--wide">
+
+  <div class="dash-header slide-in">
+    <div class="dash-header__welcome">WELCOME BACK, PLAYER</div>
+    <div class="dash-header__title cursor">{{ username }}</div>
+    <div class="dash-header__sub">
+      UUID: <span style="color:var(--blue); font-size:7px;">{{ player_uuid }}</span>
+    </div>
+  </div>
+
+  <!-- XP Bar -->
+  <div class="xp-bar-wrap pixel-box" style="padding:20px;">
+    <div class="xp-bar-label">
+      <span style="color:var(--yellow);">⚔ PROGRESS</span>
+      <span style="color:var(--green);">{{ solved_count }} / 3 COMPLETED</span>
+    </div>
+    <div class="xp-bar">
+      <div class="xp-bar__fill" data-pct="{{ ((solved_count / 3) * 100)|int }}"
+           style="width:{{ ((solved_count / 3) * 100)|int }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row mt-24">
+    <div class="stat-box pixel-box pixel-box--green" style="padding:20px; text-align:center;">
+      <span class="stat-box__val text-green">{{ solved_count }}</span>
+      <span class="stat-box__key">LEVELS CLEARED</span>
+    </div>
+    <div class="stat-box pixel-box" style="padding:20px; text-align:center;">
+      <span class="stat-box__val text-yellow">{{ 3 - solved_count }}</span>
+      <span class="stat-box__key">REMAINING</span>
+    </div>
+    <div class="stat-box pixel-box" style="padding:20px; text-align:center;">
+      <span class="stat-box__val text-blue">XSS</span>
+      <span class="stat-box__key">ATTACK TYPE</span>
+    </div>
+    <div class="stat-box pixel-box" style="padding:20px; text-align:center;">
+      <span class="stat-box__val text-purple">
+        {% if solved_count == 0 %}NOOB
+        {% elif solved_count == 1 %}HACKER
+        {% elif solved_count == 2 %}PRO
+        {% else %}LEGEND{% endif %}
+      </span>
+      <span class="stat-box__key">PLAYER RANK</span>
+    </div>
+  </div>
+
+  <!-- Level Select -->
+  <div class="mt-32">
+    <div class="levels-title">▶ SELECT STAGE</div>
+    <div class="levels-grid">
+
+      <!-- ── LEVEL 1 ── -->
+      {% set l1 = level_map.get(1, {}) %}
+      <a href="{{ url_for('levels.level1', player_uuid=player_uuid) }}"
+         class="level-card pixel-box {% if l1.solved %}pixel-box--green{% else %}pixel-box--yellow{% endif %}">
+        <div class="level-card__header">
+          <span class="level-card__num text-{% if l1.solved %}green{% else %}yellow{% endif %}">01</span>
+          <span class="level-badge {% if l1.solved %}level-badge--solved{% else %}level-badge--open{% endif %}">
+            {% if l1.solved %}✔ CLEARED{% else %}▶ OPEN{% endif %}
+          </span>
+        </div>
+        <div class="hp-bar">
+          <span class="hp-bar__label">HP</span>
+          <div class="hp-bar__track">
+            <div class="hp-bar__fill {% if not l1.solved %}hp-bar__fill--med{% endif %}"
+                 style="width:{% if l1.solved %}100{% else %}60{% endif %}%;"></div>
+          </div>
+        </div>
+        <div class="level-card__title text-{% if l1.solved %}green{% else %}yellow{% endif %}">FILTER BYPASS XSS</div>
+        <div class="level-card__desc">
+          Strict filter active.<br>No ( ) ' " &lt; &gt; allowed.<br>Find another way in.
+        </div>
+        <div class="level-card__footer text-{% if l1.solved %}green{% else %}yellow{% endif %}">
+          {% if l1.solved %}★ STAGE COMPLETE ★{% else %}► ENTER STAGE{% endif %}
+        </div>
+      </a>
+
+      <!-- ── LEVEL 2 ── -->
+      {% set l2 = level_map.get(2, {}) %}
+      <a href="{{ url_for('levels.level2', player_uuid=player_uuid) }}"
+         class="level-card pixel-box {% if l2.solved %}pixel-box--green{% else %}pixel-box--red{% endif %}">
+        <div class="level-card__header">
+          <span class="level-card__num text-{% if l2.solved %}green{% else %}red{% endif %}">02</span>
+          <span class="level-badge {% if l2.solved %}level-badge--solved{% else %}level-badge--open{% endif %}"
+                style="{% if not l2.solved %}color:var(--red); border-color:var(--red);{% endif %}">
+            {% if l2.solved %}✔ CLEARED{% else %}▶ OPEN{% endif %}
+          </span>
+        </div>
+        <div class="hp-bar">
+          <span class="hp-bar__label">HP</span>
+          <div class="hp-bar__track">
+            <div class="hp-bar__fill {% if l2.solved %}{% else %}hp-bar__fill--low{% endif %}"
+                 style="width:{% if l2.solved %}100{% else %}30{% endif %}%;"></div>
+          </div>
+        </div>
+        <div class="level-card__title text-{% if l2.solved %}green{% else %}red{% endif %}">COOKIE THEFT</div>
+        <div class="level-card__desc">
+          Admin reviews every post.<br>Inject XSS in a review.<br>Steal their session cookie.
+        </div>
+        <div class="level-card__footer text-{% if l2.solved %}green{% else %}red{% endif %}">
+          {% if l2.solved %}★ STAGE COMPLETE ★{% else %}► ENTER STAGE{% endif %}
+        </div>
+      </a>
+
+      <!-- ── BONUS ── -->
+      {% set lb = level_map.get(99, {}) %}
+      <a href="{{ url_for('levels.bonus', player_uuid=player_uuid) }}"
+         class="level-card pixel-box {% if lb.solved %}pixel-box--green{% endif %}"
+         style="border-color:{% if lb.solved %}var(--green){% else %}var(--purple){% endif %};">
+        <div class="level-card__header">
+          <span class="level-card__num text-{% if lb.solved %}green{% else %}purple{% endif %}">??</span>
+          {% if lb.solved %}
+            <span class="level-badge level-badge--solved">✔ CLEARED</span>
+          {% else %}
+            <span class="level-badge level-badge--bonus">★ BONUS</span>
+          {% endif %}
+        </div>
+        <div class="hp-bar">
+          <span class="hp-bar__label">HP</span>
+          <div class="hp-bar__track">
+            <div class="hp-bar__fill"
+                 style="width:{% if lb.solved %}100{% else %}5{% endif %}%;
+                        background:{% if lb.solved %}var(--green){% else %}var(--purple){% endif %};"></div>
+          </div>
+        </div>
+        <div class="level-card__title text-{% if lb.solved %}green{% else %}purple{% endif %}">
+          {% if lb.solved %}CODE RECON XSS{% else %}???{% endif %}
+        </div>
+        <div class="level-card__desc">
+          {% if lb.solved %}
+            Hidden function found<br>and successfully called.<br>Master recon achieved.
+          {% else %}
+            Something is hidden here.<br>Inspect everything.<br>Find the secret function.
+          {% endif %}
+        </div>
+        <div class="level-card__footer text-{% if lb.solved %}green{% else %}purple{% endif %}">
+          {% if lb.solved %}★ BONUS COMPLETE ★{% else %}► ENTER STAGE{% endif %}
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div class="terminal mt-32">
+    <div class="terminal__body">
+      <div class="terminal__line">
+        <span class="terminal__prompt">$</span>
+        <span class="terminal__cmd">whoami</span>
+      </div>
+      <div class="terminal__out">{{ username }} @ xsscart-ctf</div>
+      <div class="terminal__line" style="margin-top:8px;">
+        <span class="terminal__prompt">$</span>
+        <span class="terminal__cmd">status --all</span>
+      </div>
+      <div class="terminal__out">
+        [{{ '█' * solved_count }}{{ '░' * (3 - solved_count) }}] {{ solved_count }}/3 stages cleared
+      </div>
+      {% if solved_count == 0 %}
+      <div class="terminal__out" style="margin-top:4px;">hint: start with STAGE 01.</div>
+      {% elif solved_count == 3 %}
+      <div class="terminal__out text-green" style="margin-top:4px;">ALL STAGES CLEARED. YOU WIN.</div>
+      {% else %}
+      <div class="terminal__out" style="margin-top:4px;">{{ 3 - solved_count }} stage(s) remaining.</div>
+      {% endif %}
+      <div class="terminal__line" style="margin-top:8px;">
+        <span class="terminal__prompt">$</span>
+        <span class="terminal__cmd cursor" style="color:var(--green);"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

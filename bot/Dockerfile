@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+WORKDIR /bot
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt \
+ && playwright install chromium \
+ && playwright install-deps chromium
+
+COPY admin_bot.py .
+
+EXPOSE 5001
+CMD ["python", "admin_bot.py"]
